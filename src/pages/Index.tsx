@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
 import Icon from '@/components/ui/icon';
 
 type Tour = {
@@ -102,25 +102,14 @@ const gallery = [
 ];
 
 const Index = () => {
-  const [sortBy, setSortBy] = useState<string>('popular');
-  const [filterDifficulty, setFilterDifficulty] = useState<string>('all');
-  const [filterPrice, setFilterPrice] = useState<string>('all');
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
 
-  const filteredTours = tours
-    .filter(tour => {
-      if (filterDifficulty !== 'all' && tour.difficulty !== filterDifficulty) return false;
-      if (filterPrice === 'low' && tour.price > 50) return false;
-      if (filterPrice === 'medium' && (tour.price <= 50 || tour.price > 70)) return false;
-      if (filterPrice === 'high' && tour.price <= 70) return false;
-      return true;
-    })
-    .sort((a, b) => {
-      if (sortBy === 'popular') return b.popular ? 1 : -1;
-      if (sortBy === 'price-asc') return a.price - b.price;
-      if (sortBy === 'price-desc') return b.price - a.price;
-      if (sortBy === 'duration') return parseInt(a.duration) - parseInt(b.duration);
-      return 0;
-    });
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/20">
@@ -132,10 +121,11 @@ const Index = () => {
               <h1 className="text-2xl font-bold text-primary">EgyptTours</h1>
             </div>
             <div className="hidden md:flex gap-6">
-              <a href="#tours" className="hover:text-primary transition-colors">Экскурсии</a>
-              <a href="#gallery" className="hover:text-primary transition-colors">Галерея</a>
-              <a href="#about" className="hover:text-primary transition-colors">О нас</a>
-              <a href="#contacts" className="hover:text-primary transition-colors">Контакты</a>
+              <button onClick={() => scrollToSection('tours')} className="hover:text-primary transition-colors">Экскурсии</button>
+              <button onClick={() => scrollToSection('gallery')} className="hover:text-primary transition-colors">Галерея</button>
+              <button onClick={() => scrollToSection('reviews')} className="hover:text-primary transition-colors">Отзывы</button>
+              <button onClick={() => scrollToSection('about')} className="hover:text-primary transition-colors">О нас</button>
+              <button onClick={() => scrollToSection('contacts')} className="hover:text-primary transition-colors">Контакты</button>
             </div>
             <Button className="hidden md:inline-flex">
               <Icon name="Phone" size={16} className="mr-2" />
@@ -159,11 +149,11 @@ const Index = () => {
             Незабываемые путешествия по древним памятникам, пустыням и коралловым рифам
           </p>
           <div className="flex gap-4 justify-center flex-wrap">
-            <Button size="lg" className="text-lg">
+            <Button size="lg" className="text-lg" onClick={() => scrollToSection('tours')}>
               <Icon name="Search" size={20} className="mr-2" />
               Смотреть экскурсии
             </Button>
-            <Button size="lg" variant="outline" className="text-lg">
+            <Button size="lg" variant="outline" className="text-lg" onClick={() => scrollToSection('contacts')}>
               <Icon name="Phone" size={20} className="mr-2" />
               Получить консультацию
             </Button>
@@ -178,49 +168,8 @@ const Index = () => {
             <p className="text-muted-foreground text-lg">Выберите идеальное приключение</p>
           </div>
 
-          <div className="flex flex-wrap gap-4 justify-center mb-8 animate-scale-in">
-            <Select value={sortBy} onValueChange={setSortBy}>
-              <SelectTrigger className="w-[200px]">
-                <Icon name="ArrowUpDown" size={16} className="mr-2" />
-                <SelectValue placeholder="Сортировка" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="popular">Популярные</SelectItem>
-                <SelectItem value="price-asc">Цена: низкая</SelectItem>
-                <SelectItem value="price-desc">Цена: высокая</SelectItem>
-                <SelectItem value="duration">Длительность</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterDifficulty} onValueChange={setFilterDifficulty}>
-              <SelectTrigger className="w-[200px]">
-                <Icon name="TrendingUp" size={16} className="mr-2" />
-                <SelectValue placeholder="Сложность" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все уровни</SelectItem>
-                <SelectItem value="Легкая">Легкая</SelectItem>
-                <SelectItem value="Средняя">Средняя</SelectItem>
-                <SelectItem value="Сложная">Сложная</SelectItem>
-              </SelectContent>
-            </Select>
-
-            <Select value={filterPrice} onValueChange={setFilterPrice}>
-              <SelectTrigger className="w-[200px]">
-                <Icon name="DollarSign" size={16} className="mr-2" />
-                <SelectValue placeholder="Цена" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Все цены</SelectItem>
-                <SelectItem value="low">До $50</SelectItem>
-                <SelectItem value="medium">$50-$70</SelectItem>
-                <SelectItem value="high">От $70</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredTours.map((tour, index) => (
+            {tours.map((tour, index) => (
               <Card key={tour.id} className="overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                 <div className="relative h-48 overflow-hidden">
                   <img src={tour.image} alt={tour.title} className="w-full h-full object-cover transition-transform duration-500 hover:scale-110" />
@@ -277,7 +226,13 @@ const Index = () => {
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="date">Желаемая дата</Label>
-                          <Input id="date" type="date" />
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={setSelectedDate}
+                            disabled={(date) => date < new Date()}
+                            className="rounded-md border"
+                          />
                         </div>
                         <div className="grid gap-2">
                           <Label htmlFor="message">Комментарий</Label>
@@ -311,6 +266,196 @@ const Index = () => {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="reviews" className="py-20 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-12 animate-fade-in">
+            <h2 className="text-4xl font-bold mb-4">Отзывы наших туристов</h2>
+            <p className="text-muted-foreground text-lg">Реальные впечатления от путешествий</p>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="overflow-hidden animate-fade-in">
+              <div className="relative h-64">
+                <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400" alt="Анна Петрова" className="w-full h-full object-cover" />
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                </div>
+                <CardTitle>Незабываемые впечатления!</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Пирамиды просто поразили! Гид был невероятно знающим, рассказал столько интересных фактов. Организация на высшем уровне, все прошло гладко.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary font-semibold">АП</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Анна Петрова</div>
+                    <div className="text-sm text-muted-foreground">Москва • Декабрь 2025</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden animate-fade-in" style={{ animationDelay: '100ms' }}>
+              <div className="relative h-64">
+                <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=400" alt="Дмитрий Соколов" className="w-full h-full object-cover" />
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                </div>
+                <CardTitle>Лучший дайвинг в моей жизни</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Красное море превзошло все ожидания! Коралловые рифы, рыбы, черепахи - это что-то невероятное. Инструкторы профессионалы, чувствовал себя в безопасности.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary font-semibold">ДС</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Дмитрий Соколов</div>
+                    <div className="text-sm text-muted-foreground">Санкт-Петербург • Ноябрь 2025</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <div className="relative h-64">
+                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=400" alt="Елена Васильева" className="w-full h-full object-cover" />
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                </div>
+                <CardTitle>Романтичный круиз по Нилу</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Отмечали годовщину свадьбы - получилось волшебно! Закат над Нилом, ужин на палубе, живая музыка. Спасибо за такой прекрасный вечер!
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary font-semibold">ЕВ</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Елена Васильева</div>
+                    <div className="text-sm text-muted-foreground">Казань • Октябрь 2025</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden animate-fade-in" style={{ animationDelay: '300ms' }}>
+              <div className="relative h-64">
+                <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400" alt="Максим Кузнецов" className="w-full h-full object-cover" />
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                </div>
+                <CardTitle>Адреналин в пустыне!</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Сафари на квадроциклах - это мощно! Скорость, песок, закат в пустыне. Визит в бедуинскую деревню добавил колорита. Рекомендую всем любителям экстрима!
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary font-semibold">МК</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Максим Кузнецов</div>
+                    <div className="text-sm text-muted-foreground">Екатеринбург • Сентябрь 2025</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden animate-fade-in" style={{ animationDelay: '400ms' }}>
+              <div className="relative h-64">
+                <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400" alt="Ольга Смирнова" className="w-full h-full object-cover" />
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                </div>
+                <CardTitle>Магия древнего Луксора</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Храмы Карнак и Луксор оставили неизгладимое впечатление. История оживает на глазах! Экскурсовод настоящий профессионал, было очень познавательно.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary font-semibold">ОС</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Ольга Смирнова</div>
+                    <div className="text-sm text-muted-foreground">Новосибирск • Август 2025</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="overflow-hidden animate-fade-in" style={{ animationDelay: '500ms' }}>
+              <div className="relative h-64">
+                <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400" alt="Андрей Морозов" className="w-full h-full object-cover" />
+              </div>
+              <CardHeader>
+                <div className="flex items-center gap-2 mb-2">
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                  <Icon name="Star" size={16} className="text-yellow-500 fill-yellow-500" />
+                </div>
+                <CardTitle>Египетский музей - восторг!</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Увидеть сокровища Тутанхамона вживую - бесценно! Коллекция музея поражает масштабом. Три часа пролетели незаметно, хотелось остаться дольше.
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="text-primary font-semibold">АМ</span>
+                  </div>
+                  <div>
+                    <div className="font-semibold">Андрей Морозов</div>
+                    <div className="text-sm text-muted-foreground">Краснодар • Июль 2025</div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
